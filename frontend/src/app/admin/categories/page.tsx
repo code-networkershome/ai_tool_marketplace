@@ -39,10 +39,10 @@ export default function AdminCategoriesPage() {
   };
 
   const handleNameChange = (name: string) => {
-    setNewCategory({ 
-      ...newCategory, 
-      name, 
-      slug: slugify(name) 
+    setNewCategory({
+      ...newCategory,
+      name,
+      slug: slugify(name)
     });
   };
 
@@ -52,7 +52,7 @@ export default function AdminCategoriesPage() {
       return;
     }
     try {
-      await api.client.post('/categories', newCategory);
+      await api.createCategory(newCategory);
       toast.success('Category added');
       setIsAdding(false);
       setNewCategory({ name: '', slug: '', description: '' });
@@ -66,7 +66,7 @@ export default function AdminCategoriesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure? This will fail if tools are in this category.')) return;
     try {
-      await api.client.delete(`/categories/${id}`);
+      await api.deleteCategory(id);
       toast.success('Category deleted');
       fetchCategories();
     } catch (error: any) {
@@ -141,7 +141,7 @@ export default function AdminCategoriesPage() {
                   <td className="px-6 py-4">
                     <div className="flex gap-3">
                       <button className="text-gray-400 hover:text-primary-600 transition-colors"><Edit2 className="h-4 w-4" /></button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(cat.id)}
                         className="text-gray-400 hover:text-red-600 transition-colors">
                         <Trash2 className="h-4 w-4" />

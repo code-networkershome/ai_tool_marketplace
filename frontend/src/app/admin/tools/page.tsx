@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import {
   Box,
   CheckCircle,
@@ -16,7 +16,7 @@ import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function AdminToolsPage() {
+function AdminToolsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const statusFilter = searchParams.get('status') || '';
@@ -167,11 +167,10 @@ export default function AdminToolsPage() {
                       <button
                         onClick={() => handleAutoCategorize(tool.id)}
                         disabled={processingId === tool.id}
-                        className={`p-1.5 rounded-md transition-colors ${
-                          processingId === tool.id
-                            ? 'bg-gray-100 text-gray-400 animate-pulse'
-                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
-                        }`}
+                        className={`p-1.5 rounded-md transition-colors ${processingId === tool.id
+                          ? 'bg-gray-100 text-gray-400 animate-pulse'
+                          : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                          }`}
                         title="Auto-categorize with GPT"
                       >
                         <Sparkles className="h-3.5 w-3.5" />
@@ -179,11 +178,10 @@ export default function AdminToolsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      tool.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tool.status === 'approved' ? 'bg-green-100 text-green-800' :
                       tool.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
+                        'bg-red-100 text-red-800'
+                      }`}>
                       {tool.status}
                     </span>
                   </td>
@@ -241,5 +239,13 @@ export default function AdminToolsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminToolsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading tools...</div>}>
+      <AdminToolsContent />
+    </Suspense>
   );
 }

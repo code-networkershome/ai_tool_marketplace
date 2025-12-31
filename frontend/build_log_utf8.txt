@@ -1,0 +1,177 @@
+﻿
+> ai-tool-marketplace@1.0.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/16) ...
+node.exe :  Γ¿» 
+useSearchParams() should be 
+wrapped in a suspense boundary 
+at page "/admin/tools". Read 
+more: https://nextjs.org/docs/mes
+sages/missing-suspense-with-csr-b
+ailout
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo          : No 
+   tSpecified: ( Γ¿» useSearchP  
+  ...ith-csr-bailout:String) [   
+ ], RemoteException
+    + FullyQualifiedErrorId : Na 
+   tiveCommandError
+ 
+    at o (D:\ai_for_x\frontend\.n
+ext\server\chunks\992.js:1:58202)
+    at u (D:\ai_for_x\frontend\.n
+ext\server\chunks\992.js:1:69138)
+    at m (D:\ai_for_x\frontend\.n
+ext\server\app\admin\tools\page.j
+s:1:6709)
+    at nj (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:46252)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47572)
+    at nL (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:64547)
+    at nI (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47011)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47718)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:61547)
+    at nL (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:64547)
+
+Error occurred prerendering page 
+"/admin/tools". Read more: https:
+//nextjs.org/docs/messages/preren
+der-error
+
+ Γ¿» useSearchParams() should be 
+wrapped in a suspense boundary 
+at page "/search". Read more: htt
+ps://nextjs.org/docs/messages/mis
+sing-suspense-with-csr-bailout
+    at o (D:\ai_for_x\frontend\.n
+ext\server\chunks\992.js:1:58202)
+    at u (D:\ai_for_x\frontend\.n
+ext\server\chunks\992.js:1:69138)
+    at u (D:\ai_for_x\frontend\.n
+ext\server\app\search\page.js:1:2
+590)
+    at nj (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:46252)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47572)
+    at nL (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:64547)
+    at nI (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47011)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47718)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:61547)
+    at nL (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:64547)
+
+Error occurred prerendering page 
+"/search". Read more: https://nex
+tjs.org/docs/messages/prerender-e
+rror
+
+ Γ¿» useSearchParams() should be 
+wrapped in a suspense boundary 
+at page "/login". Read more: http
+s://nextjs.org/docs/messages/miss
+ing-suspense-with-csr-bailout
+    at o (D:\ai_for_x\frontend\.n
+ext\server\chunks\992.js:1:58202)
+    at u (D:\ai_for_x\frontend\.n
+ext\server\chunks\992.js:1:69138)
+    at p (D:\ai_for_x\frontend\.n
+ext\server\app\login\page.js:1:24
+42)
+    at nj (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:46252)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47572)
+    at nL (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:64547)
+    at nI (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47011)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:47718)
+    at nM (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:61547)
+    at nL (D:\ai_for_x\frontend\n
+ode_modules\next\dist\compiled\ne
+xt-server\app-page.runtime.prod.j
+s:12:64547)
+
+Error occurred prerendering page 
+"/login". Read more: https://next
+js.org/docs/messages/prerender-er
+ror
+
+   Generating static pages (4/16) 
+   Generating static pages (8/16) 
+   Generating static pages (12/16) 
+ Γ£ô Generating static pages (16/16)
+
+> Export encountered errors on 
+following paths:
+	/admin/tools/page: /admin/tools
+	/login/page: /login
+	/search/page: /search

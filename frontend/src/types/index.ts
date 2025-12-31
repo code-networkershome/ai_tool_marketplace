@@ -69,6 +69,8 @@ export interface ToolListItem {
   slug: string;
   short_description: string;
   logo_url?: string;
+  website_url?: string;
+  status: ToolStatus;
   category_id?: string;
   pricing_model: PricingModel;
   starting_price?: number;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter, X } from 'lucide-react';
 import api from '@/lib/api';
@@ -10,7 +10,7 @@ import Input from '@/components/ui/Input';
 import ToolGrid from '@/components/tools/ToolGrid';
 import { getPricingLabel } from '@/lib/utils';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
@@ -139,9 +139,8 @@ export default function SearchPage() {
       <div className="flex gap-8">
         {/* Filters Sidebar */}
         <aside
-          className={`w-64 flex-shrink-0 ${
-            showFilters ? 'block' : 'hidden lg:block'
-          }`}
+          className={`w-64 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'
+            }`}
         >
           <div className="sticky top-24 rounded-xl border bg-white p-6">
             <div className="flex items-center justify-between">
@@ -288,5 +287,13 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-center text-gray-500">Loading search...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
