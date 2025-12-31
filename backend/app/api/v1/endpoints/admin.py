@@ -122,6 +122,69 @@ async def get_pending_tools(
     )
 
 
+@router.get("/tools", response_model=PaginatedResponse[ToolListResponse])
+async def list_admin_tools(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    status: Optional[str] = Query(None, pattern="^(pending|approved|rejected|archived)$"),
+    search: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_admin),
+):
+    """
+    List all tools for admin management (with optional filtering).
+    """
+    query = select(Tool)
+
+    # Apply filters
+    if status:
+        query = query.where(Tool.status == status)
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.where(
+            or_(
+                Tool.name.ilike(search_term),
+                Tool.slug.ilike(search_term),
+                Tool.website_url.ilike(search_term)
+            )
+        )
+
+    query = query.order_by(Tool.created_at.desc())
+
+    # Count
+    count_query = select(func.count(Tool.id))
+    if status:
+        count_query = count_query.where(Tool.status == status)
+    if search:
+        count_query = count_query.where(
+            or_(
+                Tool.name.ilike(search_term),
+                Tool.slug.ilike(search_term),
+                Tool.website_url.ilike(search_term)
+            )
+        )
+            
+    total = (await db.execute(count_query)).scalar() or 0
+
+    # Pagination
+    offset = (page - 1) * limit
+    query = query.offset(offset).limit(limit)
+
+    result = await db.execute(query)
+    tools = result.scalars().all()
+
+    return PaginatedResponse(
+        items=[ToolListResponse.model_validate(t) for t in tools],
+        total=total,
+        page=page,
+        limit=limit,
+        pages=(total + limit - 1) // limit if total > 0 else 1,
+        has_next=offset + len(tools) < total,
+        has_prev=page > 1
+    )
+
+
 @router.get("/tools/{tool_id}/stats", response_model=ToolStats)
 async def get_tool_stats(
     tool_id: UUID,

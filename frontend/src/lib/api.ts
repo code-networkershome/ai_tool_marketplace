@@ -285,6 +285,26 @@ class ApiClient {
     return data;
   }
 
+  async getAdminTools(
+    page = 1,
+    limit = 20,
+    status?: string,
+    search?: string
+  ): Promise<PaginatedResponse<ToolListItem>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (status) params.append('status', status);
+    if (search) params.append('search', search);
+
+    const { data } = await this.client.get<PaginatedResponse<ToolListItem>>(
+      `/admin/tools?${params.toString()}`
+    );
+    return data;
+  }
+
   async getToolStats(toolId: string): Promise<ToolStats> {
     const { data } = await this.client.get<ToolStats>(`/admin/tools/${toolId}/stats`);
     return data;

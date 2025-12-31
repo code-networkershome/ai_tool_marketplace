@@ -45,12 +45,8 @@ function AdminToolsContent() {
   async function fetchTools() {
     setIsLoading(true);
     try {
-      let data;
-      if (statusFilter === 'pending') {
-        data = await api.getPendingTools(page, 20);
-      } else {
-        data = await api.getTools(page, 20);
-      }
+      // Use the dedicated admin endpoint for all queries
+      const data = await api.getAdminTools(page, 20, statusFilter);
       setTools(data.items);
       setPages(data.pages);
     } catch (error) {
@@ -114,7 +110,10 @@ function AdminToolsContent() {
             onChange={(e) => router.push(`/admin/tools?status=${e.target.value}`)}
           >
             <option value="">All Status</option>
-            <option value="pending">Pending Only</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="archived">Archived</option>
           </select>
         </div>
       </div>
