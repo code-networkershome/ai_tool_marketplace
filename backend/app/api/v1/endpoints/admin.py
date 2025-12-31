@@ -368,3 +368,40 @@ async def bulk_tool_action(
     await db.commit()
 
     return BaseResponse(message=f"Action '{action}' applied to {len(tools)} tools")
+
+@router.post("/tools/{tool_id}/auto-categorize")
+async def auto_categorize_tool(
+    tool_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_admin),
+):
+    """
+    Auto-categorize a tool using LLM.
+    """
+    from app.services.llm_extractor import llm_extractor
+    from app.services.tool_service import tool_service
+    
+    tool = await db.get(Tool, tool_id)
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    # Classify category
+    category_name = await llm_extractor.classify_category(
+        name=tool.name,
+        description=tool.short_description,
+        tags=tool.tags or []
+    )
+    
+    # Get or create the category
+    category = await tool_service._get_or_create_category(db, category_name)
+    
+    if category:
+        tool.category_id = category.id
+        await db.commit()
+        await db.refresh(tool)
+    
+    return {
+        "success": True,
+        "category_name": category_name,
+        "category_id": str(category.id) if category else None
+    }

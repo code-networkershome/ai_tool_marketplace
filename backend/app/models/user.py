@@ -42,7 +42,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     api_requests_count = Column(String(20), default="0")
 
     # Relationships
-    tools = relationship("Tool", back_populates="owner", lazy="dynamic")
+    tools = relationship("Tool", back_populates="owner", lazy="dynamic", primaryjoin="User.id==Tool.owner_id")
     reviews = relationship("Review", back_populates="user", lazy="dynamic")
     saved_tools = relationship("SavedTool", back_populates="user", lazy="dynamic")
     subscriptions = relationship("Subscription", back_populates="user", lazy="dynamic")

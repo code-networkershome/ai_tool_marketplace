@@ -112,7 +112,7 @@ class Tool(Base, UUIDMixin, TimestampMixin):
     embedding_id = Column(String(64))
 
     # Relationships
-    owner = relationship("User", back_populates="tools")
+    owner = relationship("User", back_populates="tools", foreign_keys=[owner_id])
     category = relationship("Category", back_populates="tools")
     reviews = relationship("Review", back_populates="tool", lazy="dynamic")
     saved_by = relationship("SavedTool", back_populates="tool", lazy="dynamic")

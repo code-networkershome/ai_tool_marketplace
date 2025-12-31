@@ -3,13 +3,23 @@ Application configuration using Pydantic Settings.
 All environment variables are loaded and validated here.
 """
 from typing import List, Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, PostgresDsn, field_validator
 from functools import lru_cache
+import os
+from dotenv import load_dotenv
 
+# Manually load .env to force override any system environment variables
+load_dotenv(os.path.join(os.getcwd(), ".env"), override=True)
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="allow"
+    )
 
     # Application
     APP_NAME: str = "AI Tool Marketplace"
@@ -79,16 +89,9 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in v.split(",")]
         return v
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-
-
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()
-
 
 settings = get_settings()

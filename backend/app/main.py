@@ -2,11 +2,17 @@
 FastAPI application entry point.
 """
 import logging
+import sys
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+
+# Fix for Playwright on Windows with Python 3.8+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from app.core.config import settings
 from app.core.database import init_db, close_db
