@@ -39,13 +39,14 @@ class EmbeddingService:
                     api_key=settings.QDRANT_API_KEY
                 )
                 logger.info(f"Connected to Qdrant Cloud: {settings.QDRANT_URL}")
+            elif settings.QDRANT_URL and settings.QDRANT_URL.startswith("http://localhost"):
+                # Local Qdrant via URL
+                self.qdrant_client = QdrantClient(url=settings.QDRANT_URL)
+                logger.info(f"Connected to local Qdrant: {settings.QDRANT_URL}")
             else:
-                # Local Qdrant
-                self.qdrant_client = QdrantClient(
-                    host=settings.QDRANT_HOST,
-                    port=settings.QDRANT_PORT
-                )
-                logger.info(f"Connected to local Qdrant: {settings.QDRANT_HOST}:{settings.QDRANT_PORT}")
+                # No Qdrant configured
+                logger.info("Qdrant URL not configured - vector search will be disabled")
+                return
 
             # Ensure collection exists
             self._ensure_collection()

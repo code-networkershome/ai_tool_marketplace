@@ -41,32 +41,55 @@ async def lifespan(app: FastAPI):
     if not _initialized:
         logger.info("Starting AI Tool Marketplace API...")
 
-        # Initialize database
-        await init_db()
-        logger.info("Database initialized")
+        # Initialize database (with timeout protection)
+        try:
+            await asyncio.wait_for(init_db(), timeout=5.0)
+            logger.info("Database initialized")
+        except asyncio.TimeoutError:
+            logger.error("Database initialization timed out")
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}", exc_info=True)
+            # Don't fail the app - allow it to start and handle DB errors per-request
 
         # Connect to Redis (optional for serverless)
-        try:
-            await redis_client.connect()
-            logger.info("Redis connected")
-        except Exception as e:
-            logger.warning(f"Redis connection failed: {e}")
+        if settings.REDIS_URL:
+            try:
+                await asyncio.wait_for(redis_client.connect(), timeout=3.0)
+                logger.info("Redis connected")
+            except asyncio.TimeoutError:
+                logger.warning("Redis connection timed out - continuing without cache")
+            except Exception as e:
+                logger.warning(f"Redis connection failed: {e} - continuing without cache")
+        else:
+            logger.info("Redis URL not configured - skipping Redis connection")
 
         # Connect to vector database (optional for serverless)
-        try:
-            await embedding_service.connect()
-            logger.info("Vector database connected")
-        except Exception as e:
-            logger.warning(f"Vector database connection failed: {e}")
+        if settings.QDRANT_URL:
+            try:
+                await asyncio.wait_for(embedding_service.connect(), timeout=5.0)
+                logger.info("Vector database connected")
+            except asyncio.TimeoutError:
+                logger.warning("Vector database connection timed out - continuing without vector search")
+            except Exception as e:
+                logger.warning(f"Vector database connection failed: {e} - continuing without vector search")
+        else:
+            logger.info("Qdrant URL not configured - skipping vector database connection")
 
         _initialized = True
 
     yield
 
-    # Shutdown - cleanup
+    # Shutdown - cleanup (with error handling)
     logger.info("Shutting down...")
-    await close_db()
-    await redis_client.disconnect()
+    try:
+        await close_db()
+    except Exception as e:
+        logger.error(f"Error closing database: {e}")
+    
+    try:
+        await redis_client.disconnect()
+    except Exception as e:
+        logger.error(f"Error disconnecting Redis: {e}")
 
 
 # Create FastAPI application

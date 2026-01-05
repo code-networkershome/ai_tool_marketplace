@@ -16,6 +16,8 @@ class RedisClient:
 
     async def connect(self):
         """Connect to Redis."""
+        if not settings.REDIS_URL:
+            raise ValueError("REDIS_URL is not configured")
         self._client = redis.from_url(
             settings.REDIS_URL,
             encoding="utf-8",
