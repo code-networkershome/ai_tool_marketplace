@@ -4,32 +4,17 @@ This file wraps the FastAPI app for Vercel serverless deployment.
 """
 import sys
 import os
-import logging
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# This ensures 'app' module can be found
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
-# Configure logging for Vercel
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from mangum import Mangum
+from app.main import app
 
-try:
-    from mangum import Mangum
-    from app.main import app
-    
-    # Vercel handler - must be named 'handler'
-    # Mangum automatically handles FastAPI lifespan events
-    handler = Mangum(app)
-    logger.info("Handler initialized successfully")
-except Exception as e:
-    logger.error(f"Failed to initialize handler: {e}", exc_info=True)
-    # Create a minimal error handler that returns proper Lambda response
-    def handler(event, context):
-        return {
-            "statusCode": 500,
-            "headers": {"Content-Type": "application/json"},
-            "body": f'{{"error": "Initialization error: {str(e)}"}}'
-        }
+# Vercel handler - must be named 'handler'
+# Mangum automatically handles FastAPI lifespan events
+# Vercel's Python runtime expects this to be a Mangum instance, not a function
+handler = Mangum(app)
