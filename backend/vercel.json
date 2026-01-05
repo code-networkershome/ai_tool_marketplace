@@ -1,19 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/2.0/schema",
-  "buildCommand": "pip install -t vercel_deploy -r requirements.txt",
+  "buildCommand": "pip install -t /var/task -r requirements.txt",
   "devCommand": "uvicorn app.main:app --host 0.0.0.0 --port 3001",
   "installCommand": "pip install -r requirements.txt",
   "framework": "fastapi",
   "regions": ["iad1"],
   "functions": {
-    "api/vercel.py": {
+    "vercel.py": {
       "maxDuration": 60
     }
   },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/vercel.py"
+      "destination": "/vercel.py"
     }
   ]
 }
