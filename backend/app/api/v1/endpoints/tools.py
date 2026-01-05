@@ -25,16 +25,12 @@ router = APIRouter()
 @router.post("/extract", response_model=ToolExtractionResult)
 async def extract_from_url(
     data: ToolURLSubmit,
-    use_playwright: bool = Query(True, description="Use Playwright for JS sites"),
 ):
     """
     Extract tool information from a URL using LLM.
     Returns extracted data for preview before submission.
     """
-    result = await tool_service.extract_from_url(
-        url=data.url,
-        use_playwright=use_playwright
-    )
+    result = await tool_service.extract_from_url(url=data.url)
 
     if not result:
         raise HTTPException(

@@ -153,9 +153,9 @@ class ApiClient {
     return data;
   }
 
-  async extractToolFromUrl(url: string, usePlaywright = true): Promise<ToolExtractionResult> {
+  async extractToolFromUrl(url: string): Promise<ToolExtractionResult> {
     const { data } = await this.client.post<ToolExtractionResult>(
-      `/tools/extract?use_playwright=${usePlaywright}`,
+      `/tools/extract`,
       { url }
     );
     return data;

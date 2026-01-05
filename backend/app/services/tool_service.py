@@ -50,8 +50,7 @@ class ToolService:
 
     async def extract_from_url(
         self,
-        url: str,
-        use_playwright: bool = True
+        url: str
     ) -> Optional[ToolExtractionResult]:
         """
         Extract tool information from URL using scraper + LLM.
@@ -59,7 +58,7 @@ class ToolService:
         logger.info(f"Extracting tool data from: {url}")
 
         # Step 1: Scrape the website
-        html = await scraper.fetch(url, use_playwright=use_playwright)
+        html = await scraper.fetch(url)
         if not html:
             logger.error(f"Failed to fetch URL: {url}")
             return None

@@ -1,6 +1,6 @@
 """
 Web scraper service for extracting content from tool websites.
-Supports both static HTML and JavaScript-rendered pages.
+Uses lightweight HTTP fetching with BeautifulSoup (no Playwright).
 """
 import asyncio
 import httpx
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class WebScraper:
-    """Web scraper with support for static and dynamic content."""
+    """Web scraper using static HTML fetching."""
 
     def __init__(self):
         self.timeout = settings.SCRAPER_TIMEOUT
@@ -30,8 +30,8 @@ class WebScraper:
             "Connection": "keep-alive",
         }
 
-    async def fetch_static(self, url: str) -> Optional[str]:
-        """Fetch HTML using httpx (for static sites)."""
+    async def fetch(self, url: str) -> Optional[str]:
+        """Fetch URL content using httpx."""
         for attempt in range(self.max_retries):
             try:
                 async with httpx.AsyncClient(
@@ -47,39 +47,6 @@ class WebScraper:
                     await asyncio.sleep(2 ** attempt)
                 continue
         return None
-
-    async def fetch_dynamic(self, url: str) -> Optional[str]:
-        """Fetch HTML using Playwright (for JS-rendered sites)."""
-        if not settings.PLAYWRIGHT_ENABLED:
-            return await self.fetch_static(url)
-
-        try:
-            from playwright.async_api import async_playwright
-
-            async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=True)
-                context = await browser.new_context(
-                    user_agent=self.user_agent,
-                    viewport={"width": 1920, "height": 1080}
-                )
-                page = await context.new_page()
-
-                await page.goto(url, wait_until="networkidle", timeout=self.timeout * 1000)
-                await page.wait_for_timeout(2000)  # Extra wait for dynamic content
-
-                html = await page.content()
-                await browser.close()
-                return html
-
-        except Exception as e:
-            logger.error(f"Playwright fetch failed for {url}: {e}")
-            return await self.fetch_static(url)
-
-    async def fetch(self, url: str, use_playwright: bool = False) -> Optional[str]:
-        """Fetch URL content."""
-        if use_playwright:
-            return await self.fetch_dynamic(url)
-        return await self.fetch_static(url)
 
     def clean_html(self, html: str) -> Dict[str, Any]:
         """
