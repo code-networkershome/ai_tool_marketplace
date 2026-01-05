@@ -2,38 +2,124 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ArrowRight, Sparkles, TrendingUp, Star, Zap } from 'lucide-react';
-import api from '@/lib/api';
-import { ToolListItem, Category } from '@/types';
+import { Search, ArrowRight, Sparkles } from 'lucide-react';
+import { Category } from '@/types';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import ToolGrid from '@/components/tools/ToolGrid';
+
+// Tool card component inline
+function ToolCard({ tool }: { tool: { id: string; name: string; short_description?: string; logo_url?: string } }) {
+  return (
+    <Link href={`/tools/${tool.id}`} className="block">
+      <div className="rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-3">
+          {tool.logo_url ? (
+            <img src={tool.logo_url} alt={tool.name} className="h-12 w-12 rounded-lg object-cover" />
+          ) : (
+            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold">
+              {tool.name.charAt(0)}
+            </div>
+          )}
+          <div>
+            <h3 className="font-semibold text-gray-900">{tool.name}</h3>
+            <p className="text-sm text-gray-500 line-clamp-2">{tool.short_description || 'No description'}</p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// Category card component inline
+function CategoryCard({ category }: { category: Category }) {
+  return (
+    <Link href={`/categories/${category.slug}`} className="flex items-center gap-4 rounded-xl border p-4 hover:shadow-md transition-all">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg text-2xl bg-primary-100">
+        {category.icon || '🤖'}
+      </div>
+      <div>
+        <h3 className="font-semibold text-gray-900">{category.name}</h3>
+        <p className="text-sm text-gray-500">{category.tool_count || 0} tools</p>
+      </div>
+    </Link>
+  );
+}
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [featuredTools, setFeaturedTools] = useState<ToolListItem[]>([]);
-  const [trendingTools, setTrendingTools] = useState<ToolListItem[]>([]);
+  const [featuredTools, setFeaturedTools] = useState<unknown[]>([]);
+  const [trendingTools, setTrendingTools] = useState<unknown[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(true);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [featured, trending, cats] = await Promise.all([
-          api.getTools(1, 6, undefined, 'featured'),
-          api.getTools(1, 6, undefined, 'trending'),
-          api.getCategories(true),
-        ]);
-        setFeaturedTools(featured.items);
-        setTrendingTools(trending.items);
-        setCategories(cats);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      } finally {
-        setIsLoading(false);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    const headers = { 'Content-Type': 'application/json' };
+
+    // Track API call failures
+    let failedCalls = 0;
+    const totalCalls = 3;
+
+    const checkAllFailed = () => {
+      failedCalls++;
+      if (failedCalls === totalCalls) {
+        setBackendError('Backend connection failed');
       }
-    }
-    fetchData();
+    };
+
+    // Fetch featured tools
+    fetch(`${API_URL}/tools?page=1&limit=4&ranking_type=featured`, { headers })
+      .then(res => {
+        if (!res.ok) throw new Error(`Featured tools API returned ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        console.log('Featured tools loaded:', data.items?.length || 0);
+        setFeaturedTools(data.items || []);
+        setBackendError(null); // Clear error on success
+      })
+      .catch(err => {
+        console.error('Failed to fetch featured tools:', err);
+        checkAllFailed();
+      })
+      .finally(() => setIsLoadingFeatured(false));
+
+    // Fetch trending tools
+    fetch(`${API_URL}/tools?page=1&limit=4&ranking_type=trending`, { headers })
+      .then(res => {
+        if (!res.ok) throw new Error(`Trending tools API returned ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        console.log('Trending tools loaded:', data.items?.length || 0);
+        setTrendingTools(data.items || []);
+        setBackendError(null); // Clear error on success
+      })
+      .catch(err => {
+        console.error('Failed to fetch trending tools:', err);
+        checkAllFailed();
+      })
+      .finally(() => setIsLoadingTrending(false));
+
+    // Fetch categories
+    fetch(`${API_URL}/categories`, { headers })
+      .then(res => {
+        if (!res.ok) throw new Error(`Categories API returned ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        console.log('Categories loaded:', data?.length || 0);
+        setCategories(data || []);
+        setBackendError(null); // Clear error on success
+      })
+      .catch(err => {
+        console.error('Failed to fetch categories:', err);
+        checkAllFailed();
+      })
+      .finally(() => setIsLoadingCategories(false));
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -45,9 +131,24 @@ export default function HomePage() {
 
   return (
     <div>
+      {/* Backend Error Warning Banner */}
+      {backendError && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
+          <div className="mx-auto max-w-7xl flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-800 text-sm">
+                ⚠️ {backendError}. Make sure the backend is running at <code className="bg-yellow-100 px-1 rounded">http://localhost:8000</code>
+              </span>
+            </div>
+            <button onClick={() => window.location.reload()} className="text-yellow-800 text-sm font-medium hover:underline">
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-accent-700 py-20 text-white">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -61,43 +162,29 @@ export default function HomePage() {
               and more. Find the perfect AI solution for your needs.
             </p>
 
-            {/* Search Bar */}
-            <form
-              onSubmit={handleSearch}
-              className="mx-auto mt-10 max-w-2xl"
-            >
+            <form onSubmit={handleSearch} className="mx-auto mt-10 max-w-2xl">
               <div className="relative">
                 <Input
                   type="search"
-                  placeholder="Search AI tools... (e.g., 'writing assistant', 'image generator')"
+                  placeholder="Search AI tools..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   leftIcon={<Search className="h-5 w-5" />}
-                  className="h-14 text-lg shadow-xl"
+                  className="h-14 text-lg shadow-xl border-0"
                 />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="absolute right-2 top-2 h-10"
-                >
+                <Button type="submit" variant="primary" className="absolute right-2 top-2 h-10">
                   Search
                 </Button>
               </div>
             </form>
 
-            {/* Quick stats */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-amber-300" />
                 <span>5,000+ AI Tools</span>
               </div>
               <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-amber-300" />
                 <span>50+ Categories</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber-300" />
-                <span>Updated Daily</span>
               </div>
             </div>
           </div>
@@ -105,109 +192,88 @@ export default function HomePage() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16">
+      <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Browse by Category
-            </h2>
-            <Link
-              href="/categories"
-              className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
-            >
-              View all categories
-              <ArrowRight className="h-4 w-4" />
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">Browse Categories</h2>
+            <Link href="/categories" className="flex items-center gap-1 text-sm font-medium text-primary-600">
+              View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {categories.slice(0, 8).map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.slug}`}
-                className="group flex items-center gap-4 rounded-xl border bg-white p-4 transition-all hover:border-primary-200 hover:shadow-md"
-              >
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-lg text-2xl"
-                  style={{ backgroundColor: `${category.color}20` }}
-                >
-                  {category.icon || '🤖'}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 group-hover:text-primary-600">
-                    {category.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {category.tool_count} tools
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {isLoadingCategories ? (
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="animate-pulse rounded-xl border bg-gray-100 p-4 h-20" />
+              ))}
+            </div>
+          ) : categories.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {categories.slice(0, 8).map((category) => (
+                <CategoryCard key={category.id} category={category} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-8">No categories found</p>
+          )}
         </div>
       </section>
 
-      {/* Featured Tools Section */}
-      <section className="bg-gray-50 py-16">
+      {/* Featured Tools */}
+      <section className="py-16 bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Star className="h-6 w-6 text-purple-500" />
-              <h2 className="text-2xl font-bold text-gray-900">Featured Tools</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Featured Tools</h2>
+          {isLoadingFeatured ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-28 animate-pulse rounded-xl bg-gray-200" />
+              ))}
             </div>
-            <Link
-              href="/featured"
-              className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
-            >
-              View all
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-8">
-            <ToolGrid tools={featuredTools} isLoading={isLoading} />
-          </div>
+          ) : featuredTools.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {featuredTools.map((tool: unknown) => {
+                const t = tool as { id: string; name: string; short_description?: string; logo_url?: string };
+                return <ToolCard key={t.id} tool={t} />;
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-8">No featured tools yet</p>
+          )}
         </div>
       </section>
 
-      {/* Trending Tools Section */}
-      <section className="py-16">
+      {/* Trending Tools */}
+      <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-6 w-6 text-green-500" />
-              <h2 className="text-2xl font-bold text-gray-900">Trending Now</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Trending Now</h2>
+          {isLoadingTrending ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-28 animate-pulse rounded-xl bg-gray-200" />
+              ))}
             </div>
-            <Link
-              href="/trending"
-              className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
-            >
-              View all
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-8">
-            <ToolGrid tools={trendingTools} isLoading={isLoading} />
-          </div>
+          ) : trendingTools.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {trendingTools.map((tool: unknown) => {
+                const t = tool as { id: string; name: string; short_description?: string; logo_url?: string };
+                return <ToolCard key={t.id} tool={t} />;
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-8">No trending tools yet</p>
+          )}
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-primary-600 to-accent-600 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 text-center">
           <h2 className="text-3xl font-bold">Have an AI Tool to Share?</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-primary-100">
-            Submit your AI tool and reach thousands of potential users. Our
-            automated extraction makes it easy to get listed.
+          <p className="mx-auto mt-4 max-w-2xl">
+            Submit your AI tool and reach thousands of potential users.
           </p>
           <Link href="/submit">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="mt-8"
-              rightIcon={<ArrowRight className="h-5 w-5" />}
-            >
+            <Button variant="secondary" size="lg" className="mt-8" rightIcon={<ArrowRight className="h-5 w-5" />}>
               Submit Your Tool
             </Button>
           </Link>

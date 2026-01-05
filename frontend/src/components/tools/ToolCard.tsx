@@ -7,6 +7,7 @@ import { ToolListItem } from '@/types';
 import { cn, getPricingLabel, getPricingColor, truncate } from '@/lib/utils';
 import Badge from '@/components/ui/Badge';
 import StarRating from '@/components/ui/StarRating';
+import api from '@/lib/api';
 
 interface ToolCardProps {
   tool: ToolListItem;
@@ -15,6 +16,21 @@ interface ToolCardProps {
 }
 
 export default function ToolCard({ tool, onSave, isSaved }: ToolCardProps) {
+  const handleVisitWebsite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      // Record the click
+      await api.recordClick(tool.id, 'tool_card');
+    } catch (error) {
+      console.error('Failed to record click:', error);
+    }
+
+    // Open in new tab
+    window.open(tool.website_url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div
       className={cn(
@@ -132,12 +148,18 @@ export default function ToolCard({ tool, onSave, isSaved }: ToolCardProps) {
             >
               {getPricingLabel(tool.pricing_model)}
             </span>
-
-            {/* External link indicator */}
-            <ExternalLink className="h-4 w-4 text-gray-400" />
           </div>
         </div>
       </Link>
+
+      {/* Visit Website Button - Outside the Link */}
+      <button
+        onClick={handleVisitWebsite}
+        className="mt-3 w-full flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+      >
+        Visit Website
+        <ExternalLink className="h-4 w-4" />
+      </button>
     </div>
   );
 }

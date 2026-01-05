@@ -1,9 +1,10 @@
 """
 User model for authentication and authorization.
 """
-from sqlalchemy import Column, String, Boolean, Enum as SQLEnum
+from sqlalchemy import Column, String, Boolean, Enum as SQLEnum, DateTime
 from sqlalchemy.orm import relationship
 import enum
+from datetime import datetime, timezone
 
 from app.core.database import Base
 from app.models.base import UUIDMixin, TimestampMixin
@@ -36,6 +37,8 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime(timezone=True))
 
     # API access
     api_key = Column(String(64), unique=True, index=True)
@@ -46,6 +49,12 @@ class User(Base, UUIDMixin, TimestampMixin):
     reviews = relationship("Review", back_populates="user", lazy="dynamic")
     saved_tools = relationship("SavedTool", back_populates="user", lazy="dynamic")
     subscriptions = relationship("Subscription", back_populates="user", lazy="dynamic")
+
+    def soft_delete(self):
+        """Mark user as deleted."""
+        self.is_deleted = True
+        self.deleted_at = datetime.now(timezone.utc)
+        self.is_active = False
 
     def __repr__(self):
         return f"<User {self.email}>"

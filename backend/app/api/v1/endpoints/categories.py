@@ -29,7 +29,19 @@ async def list_categories(
     """
     List all categories.
     """
-    query = select(Category)
+    # Subquery to count approved tools per category
+    tool_count_subquery = (
+        select(func.count(Tool.id))
+        .where(
+            Tool.category_id == Category.id,
+            Tool.status == ToolStatus.APPROVED
+        )
+        .correlate(Category)
+        .scalar_subquery()
+    )
+
+    # Select Category and the count
+    query = select(Category, tool_count_subquery.label("actual_tool_count"))
 
     if not include_inactive:
         query = query.where(Category.is_active == True)
@@ -39,9 +51,16 @@ async def list_categories(
     query = query.order_by(Category.sort_order, Category.name)
 
     result = await db.execute(query)
-    categories = result.scalars().all()
+    rows = result.all()
+    
+    # Map results to response
+    response = []
+    for category, count in rows:
+        # Update the local instance with the real count (overriding the DB column)
+        category.tool_count = count or 0
+        response.append(CategoryListResponse.model_validate(category))
 
-    return [CategoryListResponse.model_validate(c) for c in categories]
+    return response
 
 
 @router.get("/tree", response_model=List[CategoryWithChildren])

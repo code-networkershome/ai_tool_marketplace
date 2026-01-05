@@ -202,6 +202,12 @@ export default function Header() {
               {isAuthenticated ? (
                 <>
                   <Link
+                    href="/account"
+                    className="rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100"
+                  >
+                    Account Settings
+                  </Link>
+                  <Link
                     href="/submit"
                     className="rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100"
                   >

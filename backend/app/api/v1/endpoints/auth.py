@@ -18,6 +18,7 @@ from app.schemas.user import (
     UserCreate, UserUpdate, UserResponse,
     UserLogin, TokenResponse
 )
+from app.schemas.common import BaseResponse
 
 router = APIRouter()
 
@@ -166,4 +167,67 @@ async def refresh_token(
         access_token=access_token,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=UserResponse.model_validate(user)
+    )
+
+
+@router.delete("/me", response_model=BaseResponse)
+async def delete_current_account(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Delete current user's account (soft delete).
+    Deactivates the account and marks it as deleted.
+    """
+    user = await db.get(User, UUID(current_user["user_id"]))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Soft delete the user
+    user.soft_delete()
+    await db.commit()
+
+    return BaseResponse(
+        success=True,
+        message="Account deleted successfully"
+    )
+
+
+@router.delete("/users/{user_id}", response_model=BaseResponse)
+async def delete_user_by_admin(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Delete a user account by admin (soft delete).
+    Only admins can delete user accounts.
+    """
+    # Check if current user is admin
+    current_user_data = await db.get(User, UUID(current_user["user_id"]))
+    if not current_user_data or current_user_data.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can delete user accounts"
+        )
+
+    # Get user to delete
+    user = await db.get(User, UUID(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Prevent deleting other admins unless super admin
+    if user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN] and current_user_data.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot delete admin accounts"
+        )
+
+    # Soft delete the user
+    user.soft_delete()
+    await db.commit()
+
+    return BaseResponse(
+        success=True,
+        message=f"User {user.email} deleted successfully"
     )

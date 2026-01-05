@@ -13,6 +13,9 @@ from app.core.config import settings
 # Convert sync URL to async
 def get_async_db_url(url: str) -> str:
     """Convert PostgreSQL URL to async format."""
+    # Already async URL, return as-is
+    if "asyncpg" in url:
+        return url
     if url.startswith("postgresql://"):
         return url.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif url.startswith("postgres://"):
@@ -25,7 +28,6 @@ engine = create_async_engine(
     echo=settings.DEBUG,
     poolclass=NullPool,  # No pooling - better for serverless
     pool_pre_ping=True,
-    connect_timeout=10,
 )
 
 

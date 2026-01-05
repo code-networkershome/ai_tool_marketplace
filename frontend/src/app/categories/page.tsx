@@ -48,7 +48,7 @@ export default function CategoriesPage() {
         {categories.map((category) => (
           <Link
             key={category.id}
-            href={`/tools?category=${category.slug}`}
+            href={`/categories/${category.slug}`}
             className="group relative flex flex-col p-6 bg-white border border-gray-200 rounded-2xl transition-all hover:shadow-lg hover:border-primary-500"
           >
             <div className="flex items-center justify-between mb-4">

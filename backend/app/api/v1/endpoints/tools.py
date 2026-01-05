@@ -326,6 +326,7 @@ async def moderate_tool(
 ):
     """
     Approve, reject, or archive a tool (admin only).
+    Automatically assigns category if missing when approving.
     """
     tool = await tool_service.get(db, tool_id)
     if not tool:
@@ -333,6 +334,24 @@ async def moderate_tool(
 
     if data.action == "approve":
         tool.status = ToolStatus.APPROVED
+        
+        # Ensure tool has a category assigned
+        if not tool.category_id:
+            from app.services.llm_extractor import llm_extractor
+            
+            # Use LLM to classify the category
+            category_name = await llm_extractor.classify_category(
+                name=tool.name,
+                description=tool.short_description,
+                tags=tool.tags or []
+            )
+            
+            # Get or create the category
+            category = await tool_service._get_or_create_category(db, category_name)
+            
+            if category:
+                tool.category_id = category.id
+                
     elif data.action == "reject":
         tool.status = ToolStatus.REJECTED
         tool.rejection_reason = data.reason

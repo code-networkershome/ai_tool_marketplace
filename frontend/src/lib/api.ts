@@ -104,6 +104,17 @@ class ApiClient {
     return data;
   }
 
+  async deleteAccount(): Promise<BaseResponse> {
+    const { data } = await this.client.delete<BaseResponse>('/auth/me');
+    this.logout();
+    return data;
+  }
+
+  async deleteUserByAdmin(userId: string): Promise<BaseResponse> {
+    const { data } = await this.client.delete<BaseResponse>(`/auth/users/${userId}`);
+    return data;
+  }
+
   // Tools
   async getTools(
     page = 1,
