@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "AI Tool Marketplace"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = "production"
 
     # API
     API_V1_PREFIX: str = "/api/v1"
@@ -36,22 +36,20 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "https://ai-tool-marketplace-lybg.vercel.app/"]
+    CORS_ORIGINS: List[str] = ["http://localhost:3000","https://ai-tool-marketplace-lybg.vercel.app/"]
 
-    # Database
-    DATABASE_URL: PostgresDsn = Field(..., description="PostgreSQL connection URL")
+    # Database - Supabase PostgreSQL
+    DATABASE_URL: PostgresDsn = Field(..., description="Supabase PostgreSQL connection URL")
     DATABASE_POOL_SIZE: int = 5
     DATABASE_MAX_OVERFLOW: int = 10
 
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # Redis - Upstash (serverless Redis)
+    REDIS_URL: str = ""
     CACHE_TTL_SECONDS: int = 300
 
-    # Vector Database (Qdrant) - Cloud URL or local host/port
-    QDRANT_URL: str = "http://localhost:6333"
+    # Vector Database (Qdrant) - Cloud
+    QDRANT_URL: str = ""
     QDRANT_API_KEY: Optional[str] = None
-    QDRANT_HOST: str = "localhost"
-    QDRANT_PORT: int = 6333
     QDRANT_COLLECTION: str = "tool_embeddings"
 
     # OpenAI / LLM
@@ -64,7 +62,6 @@ class Settings(BaseSettings):
     SCRAPER_USER_AGENT: str = "AIToolMarketplace/1.0 (+https://aitoolmarketplace.com)"
     SCRAPER_TIMEOUT: int = 30
     SCRAPER_MAX_RETRIES: int = 3
-    PLAYWRIGHT_ENABLED: bool = True
 
     # Rate Limiting
     RATE_LIMIT_REQUESTS: int = 100
