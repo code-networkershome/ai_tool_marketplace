@@ -11,25 +11,25 @@ import Button from '@/components/ui/Button';
 
 // Static generation - this runs at build time
 export async function generateStaticParams() {
-  try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-    const response = await fetch(`${API_URL}/categories`, {
-      next: { revalidate: 3600 }, // Revalidate every hour
-    });
-    
-    if (!response.ok) {
-      console.warn('Failed to fetch categories for static generation');
-      return [];
+    try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+        const response = await fetch(`${API_URL}/categories`, {
+            next: { revalidate: 3600 }, // Revalidate every hour
+        });
+
+        if (!response.ok) {
+            console.warn('Failed to fetch categories for static generation');
+            return [];
+        }
+
+        const categories = await response.json();
+        return categories.map((category: Category) => ({
+            slug: category.slug,
+        }));
+    } catch (error) {
+        console.warn('Error generating static params for categories:', error);
+        return [];
     }
-    
-    const categories = await response.json();
-    return categories.map((category: Category) => ({
-      slug: category.slug,
-    }));
-  } catch (error) {
-    console.warn('Error generating static params for categories:', error);
-    return [];
-  }
 }
 
 export default function CategoryPage() {
@@ -165,7 +165,7 @@ export default function CategoryPage() {
                                     </Button>
                                     <div className="flex items-center gap-1">
                                         {Array.from({ length: Math.min(toolsData.pages, 7) }, (_, i) => {
-                                            let pageNum;
+                                            let pageNum: number;
                                             if (toolsData.pages <= 7) {
                                                 pageNum = i + 1;
                                             } else if (page <= 4) {
@@ -179,11 +179,10 @@ export default function CategoryPage() {
                                                 <button
                                                     key={pageNum}
                                                     onClick={() => handlePageChange(pageNum)}
-                                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                                                        pageNum === page
+                                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${pageNum === page
                                                             ? 'bg-primary-600 text-white'
                                                             : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {pageNum}
                                                 </button>
